@@ -31,10 +31,16 @@ In the data.txt file, you need to have the following format:
 
 query_id=xxx or user=xxxx
 
+In the auth.txt, wallet.txt file:
 
+![edit](https://github.com/user-attachments/assets/c8efd7f8-0df1-4bcd-8603-9e60a2dc76cf)
 
+![edit3](https://github.com/user-attachments/assets/82fefaad-1af2-4cef-a633-d38d39462988)
 
 # Run the tool using the command:
+faucet:
+
+`node faucet.js`
 
 noproxy:
 
