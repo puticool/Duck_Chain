@@ -215,9 +215,49 @@ class DuckChainAPIClient {
             return { success: false, error: error.message };
         }
     }
+    async collectDailyEgg(authorization, proxyUrl) {
+        try {
+            const axiosInstance = this.createAxiosInstance(proxyUrl);
+            
+            const checkResponse = await axiosInstance.get('https://preapi.duckchain.io/property/daily/isfinish?taskId=1', {
+                headers: {
+                    ...this.headers,
+                    'Authorization': `tma ${authorization}`
+                }
+            });
     
+            if (checkResponse.data.code === 200) {
+                if (checkResponse.data.data === 0) {
+                    const collectResponse = await axiosInstance.get('https://preapi.duckchain.io/property/daily/finish?taskId=1', {
+                        headers: {
+                            ...this.headers,
+                            'Authorization': `tma ${authorization}`
+                        }
+                    });
+    
+                    if (collectResponse.data.code === 200 && collectResponse.data.data === true) {
+                        this.log('Egg collection successful', 'success');
+                        return { success: true, data: collectResponse.data.data };
+                    } else {
+                        return { success: false, error: collectResponse.data.message };
+                    }
+                } else {
+                    this.log('Already collected today', 'warning');
+                    return { success: false, error: 'Already collected today' };
+                }
+            } else {
+                return { success: false, error: checkResponse.data.message };
+            }
+        } catch (error) {
+            this.log(`Error while collecting egg: ${error.message}`, 'error');
+            return { success: false, error: error.message };
+        }
+    }
+
     async processAllTasks(authorization, proxyUrl) {
         try {
+            this.log('Checking and collecting daily eggs...', 'info');
+            await this.collectDailyEgg(authorization, proxyUrl);
             const taskInfo = await this.getTaskInfo(authorization, proxyUrl);
             if (!taskInfo.success) {
                 this.log(`Unable to retrieve task information: ${taskInfo.error}`, 'error');
@@ -286,7 +326,7 @@ class DuckChainAPIClient {
                     return sum + (value < 0 ? value : 0);
                 }, 0);
 
-                this.log(`Quack #${quackTimes} | Total negative: ${totalNegative} | Remaining decibel: ${decibel}`, 'custom');
+                this.log(`Quack ${quackTimes} | Total negative: ${totalNegative} | Remaining decibel: ${decibel}`, 'custom');
                 return { success: true, data: response.data.data };
             } else {
                 return { success: false, error: response.data.message };
@@ -336,10 +376,10 @@ class DuckChainAPIClient {
         printLogo();
         
         const quacktime = await this.askQuestion('Do you want to use Quack Times? (y/n)..Quack Times might use up all DUCK: ');
-        const doQuackTime = quacktime.toLowerCase() === 'y';
+        const hoiquacktime = quacktime.toLowerCase() === 'y';
         let maxQuackTimes = 0;
         
-        if (doQuackTime) {
+        if (hoiquacktime) {
             const quackTimesInput = await this.askQuestion('How many times do you want to Quack? (Press Enter to quack until empty): ');
             maxQuackTimes = quackTimesInput ? parseInt(quackTimesInput) : 0;
         }
@@ -382,7 +422,8 @@ class DuckChainAPIClient {
                         if (setNameResult.success) {
                             this.log(`Duck name set successfully: ${setNameResult.data.duckName}`, 'success');
                             this.log(`Decibels: ${setNameResult.data.decibels}`, 'custom');
-                            if (doQuackTime && setNameResult.data.decibels > 0) {
+                            this.log(`Eggs currently available: ${setNameResult.data.eggs}`, 'custom');
+                            if (hoiquacktime && setNameResult.data.decibels > 0) {
                                 await this.processQuacks(authorization, setNameResult.data.decibels, currentProxy, maxQuackTimes);
                             }
                             
@@ -393,8 +434,8 @@ class DuckChainAPIClient {
                         this.log(`Duck name already set: ${userInfo.data.duckName}`, 'info');
                         if (userInfo.data.decibels) {
                             this.log(`Decibels: ${userInfo.data.decibels}`, 'custom');
-    
-                            if (doQuackTime && userInfo.data.decibels > 0) {
+                            this.log(`Eggs currently available: ${userInfo.data.eggs}`, 'custom');
+                            if (hoiquacktime && userInfo.data.decibels > 0) {
                                 await this.processQuacks(authorization, userInfo.data.decibels, currentProxy, maxQuackTimes);
                             }
                         }
