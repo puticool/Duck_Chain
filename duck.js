@@ -56,7 +56,7 @@ class DuckChainAPIClient {
 
     async getUserInfo(authorization) {
         try {
-            const response = await axios.get('https://ppp.duckchain.io/user/info', {
+            const response = await axios.get('https://aad.duckchain.io/user/info', {
                 headers: {
                     ...this.headers,
                     'Authorization': `tma ${authorization}`
@@ -76,7 +76,7 @@ class DuckChainAPIClient {
     async setDuckName(authorization, duckName) {
         try {
             const encodedDuckName = encodeURIComponent(duckName);
-            const response = await axios.get(`https://ppp.duckchain.io/user/set_duck_name?duckName=${encodedDuckName}`, {
+            const response = await axios.get(`https://aad.duckchain.io/user/set_duck_name?duckName=${encodedDuckName}`, {
                 headers: {
                     ...this.headers,
                     'Authorization': authorization
@@ -95,7 +95,7 @@ class DuckChainAPIClient {
 
     async getTaskList(authorization) {
         try {
-            const response = await axios.get('https://ppp.duckchain.io/task/task_list', {
+            const response = await axios.get('https://aad.duckchain.io/task/task_list', {
                 headers: {
                     ...this.headers,
                     'Authorization': `tma ${authorization}`
@@ -114,7 +114,7 @@ class DuckChainAPIClient {
 
     async getTaskInfo(authorization) {
         try {
-            const response = await axios.get('https://ppp.duckchain.io/task/task_info', {
+            const response = await axios.get('https://aad.duckchain.io/task/task_info', {
                 headers: {
                     ...this.headers,
                     'Authorization': `tma ${authorization}`
@@ -133,7 +133,7 @@ class DuckChainAPIClient {
 
     async performDailyCheckIn(authorization) {
         try {
-            const response = await axios.get('https://ppp.duckchain.io/task/sign_in', {
+            const response = await axios.get('https://aad.duckchain.io/task/sign_in', {
                 headers: {
                     ...this.headers,
                     'Authorization': `tma ${authorization}`
@@ -153,7 +153,7 @@ class DuckChainAPIClient {
 
     async completeTask(authorization, task) {
         try {
-            const response = await axios.get(`https://ppp.duckchain.io/task/onetime?taskId=${task.taskId}`, {
+            const response = await axios.get(`https://aad.duckchain.io/task/onetime?taskId=${task.taskId}`, {
                 headers: {
                     ...this.headers,
                     'Authorization': `tma ${authorization}`
@@ -173,7 +173,7 @@ class DuckChainAPIClient {
 
     async completeTask2(authorization, task) {
         try {
-            const response = await axios.get(`https://ppp.duckchain.io/task/partner?taskId=${task.taskId}`, {
+            const response = await axios.get(`https://aad.duckchain.io/task/partner?taskId=${task.taskId}`, {
                 headers: {
                     ...this.headers,
                     'Authorization': `tma ${authorization}`
@@ -193,7 +193,7 @@ class DuckChainAPIClient {
 
     async collectDailyEgg(authorization) {
         try {
-            const checkResponse = await axios.get('https://ppp.duckchain.io/property/daily/isfinish?taskId=1', {
+            const checkResponse = await axios.get('https://aad.duckchain.io/property/daily/isfinish?taskId=1', {
                 headers: {
                     ...this.headers,
                     'Authorization': `tma ${authorization}`
@@ -201,7 +201,7 @@ class DuckChainAPIClient {
             });
             if (checkResponse.data.code === 200) {
                 if (checkResponse.data.data === 0) {
-                    const collectResponse = await axios.get('https://ppp.duckchain.io/property/daily/finish?taskId=1', {
+                    const collectResponse = await axios.get('https://aad.duckchain.io/property/daily/finish?taskId=1', {
                         headers: {
                             ...this.headers,
                             'Authorization': `tma ${authorization}`
@@ -284,7 +284,7 @@ class DuckChainAPIClient {
 
     async executeQuack(authorization) {
         try {
-            const response = await axios.get('https://ppp.duckchain.io/quack/execute', {
+            const response = await axios.get('https://aad.duckchain.io/quack/execute', {
                 headers: {
                     ...this.headers,
                     'Authorization': `tma ${authorization}`
