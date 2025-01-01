@@ -25,13 +25,13 @@ class DuckChainAPIClient {
 
     log(msg, type = 'info') {
         const timestamp = new Date().toLocaleTimeString();
-        switch(type) {
+        switch (type) {
             case 'success':
                 console.log(`[${timestamp}] [*] ${msg}`.green);
                 break;
             case 'custom':
                 console.log(`[${timestamp}] [*] ${msg}`.magenta);
-                break;        
+                break;
             case 'error':
                 console.log(`[${timestamp}] [*] ${msg}`.red);
                 break;
@@ -56,7 +56,7 @@ class DuckChainAPIClient {
 
     async getUserInfo(authorization) {
         try {
-            const response = await axios.get('https://preapi.duckchain.io/user/info', {
+            const response = await axios.get('https://ppp.duckchain.io/user/info', {
                 headers: {
                     ...this.headers,
                     'Authorization': `tma ${authorization}`
@@ -76,7 +76,7 @@ class DuckChainAPIClient {
     async setDuckName(authorization, duckName) {
         try {
             const encodedDuckName = encodeURIComponent(duckName);
-            const response = await axios.get(`https://preapi.duckchain.io/user/set_duck_name?duckName=${encodedDuckName}`, {
+            const response = await axios.get(`https://ppp.duckchain.io/user/set_duck_name?duckName=${encodedDuckName}`, {
                 headers: {
                     ...this.headers,
                     'Authorization': authorization
@@ -95,13 +95,13 @@ class DuckChainAPIClient {
 
     async getTaskList(authorization) {
         try {
-            const response = await axios.get('https://preapi.duckchain.io/task/task_list', {
+            const response = await axios.get('https://ppp.duckchain.io/task/task_list', {
                 headers: {
                     ...this.headers,
                     'Authorization': `tma ${authorization}`
                 }
             });
-    
+
             if (response.data.code === 200) {
                 return { success: true, data: response.data.data };
             } else {
@@ -111,16 +111,16 @@ class DuckChainAPIClient {
             return { success: false, error: error.message };
         }
     }
-    
+
     async getTaskInfo(authorization) {
         try {
-            const response = await axios.get('https://preapi.duckchain.io/task/task_info', {
+            const response = await axios.get('https://ppp.duckchain.io/task/task_info', {
                 headers: {
                     ...this.headers,
                     'Authorization': `tma ${authorization}`
                 }
             });
-    
+
             if (response.data.code === 200) {
                 return { success: true, data: response.data.data };
             } else {
@@ -130,16 +130,16 @@ class DuckChainAPIClient {
             return { success: false, error: error.message };
         }
     }
-    
+
     async performDailyCheckIn(authorization) {
         try {
-            const response = await axios.get('https://preapi.duckchain.io/task/sign_in', {
+            const response = await axios.get('https://ppp.duckchain.io/task/sign_in', {
                 headers: {
                     ...this.headers,
                     'Authorization': `tma ${authorization}`
                 }
             });
-    
+
             if (response.data.code === 200) {
                 this.log('Daily check-in successful', 'success');
                 return { success: true, data: response.data.data };
@@ -150,16 +150,16 @@ class DuckChainAPIClient {
             return { success: false, error: error.message };
         }
     }
-    
+
     async completeTask(authorization, task) {
         try {
-            const response = await axios.get(`https://preapi.duckchain.io/task/onetime?taskId=${task.taskId}`, {
+            const response = await axios.get(`https://ppp.duckchain.io/task/onetime?taskId=${task.taskId}`, {
                 headers: {
                     ...this.headers,
                     'Authorization': `tma ${authorization}`
                 }
             });
-    
+
             if (response.data.code === 200) {
                 this.log(`Task ${task.content} completed successfully | Reward: ${task.integral} DUCK`, 'success');
                 return { success: true, data: response.data.data };
@@ -171,6 +171,62 @@ class DuckChainAPIClient {
         }
     }
 
+    async completeTask2(authorization, task) {
+        try {
+            const response = await axios.get(`https://ppp.duckchain.io/task/partner?taskId=${task.taskId}`, {
+                headers: {
+                    ...this.headers,
+                    'Authorization': `tma ${authorization}`
+                }
+            });
+
+            if (response.data.code === 200) {
+                this.log(`Completed task ${task.content} successfully | Reward: ${task.integral} DUCK`, 'success');
+                return { success: true, data: response.data.data };
+            } else {
+                return { success: false, error: response.data.message };
+            }
+        } catch (error) {
+            return { success: false, error: error.message };
+        }
+    }
+
+    async collectDailyEgg(authorization) {
+        try {
+            const checkResponse = await axios.get('https://ppp.duckchain.io/property/daily/isfinish?taskId=1', {
+                headers: {
+                    ...this.headers,
+                    'Authorization': `tma ${authorization}`
+                }
+            });
+            if (checkResponse.data.code === 200) {
+                if (checkResponse.data.data === 0) {
+                    const collectResponse = await axios.get('https://ppp.duckchain.io/property/daily/finish?taskId=1', {
+                        headers: {
+                            ...this.headers,
+                            'Authorization': `tma ${authorization}`
+                        }
+                    });
+                    if (collectResponse.data.code === 200 && collectResponse.data.data === true) {
+                        this.log('Successfully collected eggs', 'success');
+                        return { success: true, data: collectResponse.data.data };
+                    } else {
+                        return { success: false, error: collectResponse.data.message };
+                    }
+                } else {
+                    this.log('Eggs have already been collected today', 'warning');
+                    return { success: false, error: 'Already collected today' };
+                }
+            } else {
+                return { success: false, error: checkResponse.data.message };
+            }
+        } catch (error) {
+            this.log(`Error while collecting eggs: ${error.message}`, 'error');
+            return { success: false, error: error.message };
+        }
+    }
+
+
     async processAllTasks(authorization) {
         try {
             this.log('Checking and collecting daily eggs...', 'info');
@@ -180,17 +236,17 @@ class DuckChainAPIClient {
                 this.log(`Unable to get task information: ${taskInfo.error}`, 'error');
                 return;
             }
-    
+
             const { daily: completedDaily, oneTime: completedOneTime, partner: completedPartner } = taskInfo.data;
-    
+
             const taskList = await this.getTaskList(authorization);
             if (!taskList.success) {
                 this.log(`Unable to get task list: ${taskList.error}`, 'error');
                 return;
             }
-    
+
             const { daily, oneTime, partner, social_media } = taskList.data;
-    
+
             if (daily && Array.isArray(daily)) {
                 for (const task of daily) {
                     if (task.taskId === 8 && !completedDaily.includes(8)) {
@@ -199,7 +255,7 @@ class DuckChainAPIClient {
                     }
                 }
             }
-    
+
             if (oneTime && Array.isArray(oneTime)) {
                 for (const task of oneTime) {
                     if (!completedOneTime.includes(task.taskId)) {
@@ -209,7 +265,7 @@ class DuckChainAPIClient {
                     }
                 }
             }
-    
+
             if (partner && Array.isArray(partner)) {
                 for (const task of partner) {
                     if (!completedPartner.includes(task.taskId)) {
@@ -219,7 +275,7 @@ class DuckChainAPIClient {
                     }
                 }
             }
-    
+
             this.log('All tasks completed', 'success');
         } catch (error) {
             this.log(`Error processing tasks: ${error.message}`, 'error');
@@ -228,7 +284,7 @@ class DuckChainAPIClient {
 
     async executeQuack(authorization) {
         try {
-            const response = await axios.get('https://preapi.duckchain.io/quack/execute', {
+            const response = await axios.get('https://ppp.duckchain.io/quack/execute', {
                 headers: {
                     ...this.headers,
                     'Authorization': `tma ${authorization}`
@@ -255,7 +311,7 @@ class DuckChainAPIClient {
     async processQuacks(authorization, decibels, maxQuackTimes = 0) {
         this.log(`Starting quack with ${decibels} decibels...`, 'info');
         let quackCount = 0;
-        
+
         while (decibels > 0 && (maxQuackTimes === 0 || quackCount < maxQuackTimes)) {
             const result = await this.executeQuack(authorization);
             if (!result.success) {
@@ -266,7 +322,7 @@ class DuckChainAPIClient {
             quackCount++;
             await new Promise(resolve => setTimeout(resolve, 1000));
         }
-        
+
         this.log('Quack completed!', 'success');
     }
 
@@ -287,18 +343,10 @@ class DuckChainAPIClient {
             .replace(/\r/g, '')
             .split('\n')
             .filter(Boolean);
-    
+
         printLogo();
-        
-        const quacktime = await this.askQuestion('Do you want to Quack Times? (y/n)..Quack Times may consume all DUCK: ');
-        const hoiquacktime = quacktime.toLowerCase() === 'y';
-        let maxQuackTimes = 0;
-        
-        if (hoiquacktime) {
-            const quackTimesInput = await this.askQuestion('How many times do you want to Quack? (Press Enter to quack until empty): ');
-            maxQuackTimes = quackTimesInput ? parseInt(quackTimesInput) : 0;
-        }
-    
+
+
         while (true) {
             for (let i = 0; i < data.length; i++) {
                 const authorization = data[i];
@@ -306,27 +354,24 @@ class DuckChainAPIClient {
                 const firstName = userData.first_name;
                 const lastName = userData.last_name || '';
                 const fullName = `${firstName} ${lastName}`.trim();
-    
+
                 console.log(`========== Account ${i + 1} | ${fullName.green} ==========`);
-                
+
                 this.log(`Checking account information...`, 'info');
                 const userInfo = await this.getUserInfo(authorization);
-                
+
                 if (userInfo.success) {
                     this.log(`Information retrieved successfully!`, 'success');
-                    
+
                     if (userInfo.data.duckName === null) {
                         this.log(`Setting up duck name...`, 'info');
                         const setNameResult = await this.setDuckName(authorization, fullName);
-                        
+
                         if (setNameResult.success) {
                             this.log(`Duck name set successfully: ${setNameResult.data.duckName}`, 'success');
                             this.log(`Decibels: ${setNameResult.data.decibels}`, 'custom');
                             this.log(`Eggs currently available: ${setNameResult.data.eggs}`, 'custom');
-                            if (hoiquacktime && setNameResult.data.decibels > 0) {
-                                await this.processQuacks(authorization, setNameResult.data.decibels, maxQuackTimes);
-                            }
-                            
+
                         } else {
                             this.log(`Unable to set duck name: ${setNameResult.error}`, 'error');
                         }
@@ -335,21 +380,19 @@ class DuckChainAPIClient {
                         if (userInfo.data.decibels) {
                             this.log(`Decibels: ${userInfo.data.decibels}`, 'custom');
                             this.log(`Eggs currently available: ${userInfo.data.eggs}`, 'custom');
-                            if (hoiquacktime && userInfo.data.decibels > 0) {
-                                await this.processQuacks(authorization, userInfo.data.decibels, maxQuackTimes);
-                            }
+
                         }
                     }
                 } else {
                     this.log(`Unable to get account information: ${userInfo.error}`, 'error');
                 }
-    
+
                 this.log('Processing tasks...', 'info');
                 await this.processAllTasks(authorization);
-    
+
                 await new Promise(resolve => setTimeout(resolve, 2000));
             }
-    
+
             await this.countdown(86400);
         }
     }
